@@ -23,7 +23,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool _isGridView = true;
-  double _terminalHeight = 320;
+  double _terminalHeight = 340;
+  bool _isTerminalMaximized = false;
 
   @override
   Widget build(BuildContext context) {
@@ -56,81 +57,98 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: Row(
                 children: [
-                  // Sidebar
-                  Sidebar(
-                    onAddServer: () => _openServerForm(context),
-                  ),
+                  // Sidebar (Hidden if terminal is maximized for maximum productivity)
+                  if (!_isTerminalMaximized)
+                    Sidebar(
+                      onAddServer: () => _openServerForm(context),
+                    ),
 
                   // Main Content & Terminal Split
                   Expanded(
                     child: Column(
                       children: [
-                        // Server Management Area
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // Top Sub-header (Category title, View Mode, Quick Stats)
-                              _buildTopBar(
-                                selectedCatTitle: selectedCat != null
-                                    ? selectedCat.name
-                                    : serverProvider.favoritesOnly
-                                        ? 'Favori Sunucular'
-                                        : 'Tüm Sunucular',
-                                serverCount: filteredServers.length,
-                                totalCount: serverProvider.servers.length,
-                                onAddServer: () => _openServerForm(context),
-                                onQuickConnect: () => _openQuickConnect(context),
-                              ),
+                        // Server Management Area (Hidden if terminal is maximized)
+                        if (!_isTerminalMaximized)
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Top Sub-header (Category title, View Mode, Quick Stats)
+                                _buildTopBar(
+                                  selectedCatTitle: selectedCat != null
+                                      ? selectedCat.name
+                                      : serverProvider.favoritesOnly
+                                          ? 'Favori Sunucular'
+                                          : 'Tüm Sunucular',
+                                  serverCount: filteredServers.length,
+                                  totalCount: serverProvider.servers.length,
+                                  onAddServer: () => _openServerForm(context),
+                                  onQuickConnect: () => _openQuickConnect(context),
+                                ),
 
-                              const Divider(),
+                                const Divider(),
 
-                              // Server Grid / List
-                              Expanded(
-                                child: filteredServers.isEmpty
-                                    ? _buildEmptyState(context)
-                                    : _isGridView
-                                        ? _buildGridView(filteredServers)
-                                        : _buildTableView(filteredServers, context, serverProvider, terminalProvider),
-                              ),
-                            ],
+                                // Server Grid / List
+                                Expanded(
+                                  child: filteredServers.isEmpty
+                                      ? _buildEmptyState(context)
+                                      : _isGridView
+                                          ? _buildGridView(filteredServers)
+                                          : _buildTableView(filteredServers, context, serverProvider, terminalProvider),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
 
-                        // Bottom Embedded SSH Terminal (Resizable)
+                        // Bottom Embedded SSH Terminal (Resizable or Maximized)
                         if (showTerminal) ...[
-                          // Resize Handle Bar
-                          GestureDetector(
-                            onVerticalDragUpdate: (details) {
-                              setState(() {
-                                _terminalHeight = (_terminalHeight - details.delta.dy).clamp(180.0, 650.0);
-                              });
-                            },
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.resizeUpDown,
-                              child: Container(
-                                height: 6,
-                                color: AppColors.darkSidebar,
-                                alignment: Alignment.center,
+                          if (!_isTerminalMaximized) ...[
+                            // Resize Handle Bar
+                            GestureDetector(
+                              onVerticalDragUpdate: (details) {
+                                setState(() {
+                                  _terminalHeight = (_terminalHeight - details.delta.dy).clamp(180.0, 680.0);
+                                });
+                              },
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.resizeUpDown,
                                 child: Container(
-                                  width: 36,
-                                  height: 3,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.darkBorder,
-                                    borderRadius: BorderRadius.circular(2),
+                                  height: 6,
+                                  color: AppColors.darkSidebar,
+                                  alignment: Alignment.center,
+                                  child: Container(
+                                    width: 36,
+                                    height: 3,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.darkBorder,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-
-                          // Terminal View Widget
-                          SizedBox(
-                            height: _terminalHeight,
-                            child: TerminalTabView(
-                              onMinimizeOrClose: () => terminalProvider.toggleTerminal(),
+                            // Split Terminal View Widget
+                            SizedBox(
+                              height: _terminalHeight,
+                              child: TerminalTabView(
+                                isFullscreen: false,
+                                onToggleFullscreen: () => setState(() => _isTerminalMaximized = true),
+                                onMinimizeOrClose: () => terminalProvider.toggleTerminal(),
+                              ),
                             ),
-                          ),
+                          ] else ...[
+                            // Maximized Fullscreen Terminal View
+                            Expanded(
+                              child: TerminalTabView(
+                                isFullscreen: true,
+                                onToggleFullscreen: () => setState(() => _isTerminalMaximized = false),
+                                onMinimizeOrClose: () {
+                                  setState(() => _isTerminalMaximized = false);
+                                  terminalProvider.toggleTerminal();
+                                },
+                              ),
+                            ),
+                          ],
                         ],
                       ],
                     ),
@@ -380,6 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
       barrierDismissible: false,
       builder: (ctx) => ServerFormDialog(
         server: server.copyWith(name: '${server.name} (Kopya)'),
+        isDuplicate: true,
       ),
     );
   }

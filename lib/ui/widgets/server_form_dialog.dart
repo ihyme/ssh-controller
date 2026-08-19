@@ -10,10 +10,12 @@ import '../../services/ssh_service.dart';
 
 class ServerFormDialog extends StatefulWidget {
   final ServerModel? server; // If not null, edit mode
+  final bool isDuplicate;
 
   const ServerFormDialog({
     super.key,
     this.server,
+    this.isDuplicate = false,
   });
 
   @override
@@ -159,9 +161,10 @@ class _ServerFormDialogState extends State<ServerFormDialog> {
     final notes = _notesController.text.trim();
 
     final serverProvider = context.read<ServerProvider>();
+    final isNewRecord = widget.server == null || widget.isDuplicate;
 
-    if (widget.server == null) {
-      // Add new
+    if (isNewRecord) {
+      // Add new record with fresh UUID
       await serverProvider.addServer(
         name: name,
         host: host,
@@ -228,7 +231,11 @@ class _ServerFormDialogState extends State<ServerFormDialog> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    widget.server == null ? 'Yeni SSH Sunucusu Ekle' : 'Sunucuyu Düzenle',
+                    widget.isDuplicate
+                        ? 'Sunucuyu Çoğalt (Yeni Kayıt)'
+                        : widget.server == null
+                            ? 'Yeni SSH Sunucusu Ekle'
+                            : 'Sunucuyu Düzenle',
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   ),
                   const Spacer(),
@@ -499,38 +506,58 @@ class _ServerFormDialogState extends State<ServerFormDialog> {
                           ),
                         ),
                         const SizedBox(width: 14),
-                        // Color Selector
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Renk Rozeti', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: AppColors.categoryColors.take(5).map((c) {
-                                final hex = '#${c.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
-                                final isSelected = _selectedColorHex.toUpperCase() == hex.toUpperCase();
-                                return InkWell(
-                                  onTap: () => setState(() => _selectedColorHex = hex),
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 6),
-                                    width: 22,
-                                    height: 22,
-                                    decoration: BoxDecoration(
-                                      color: c,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: isSelected ? Colors.white : Colors.transparent,
-                                        width: 2,
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.palette_outlined, size: 14, color: AppColors.textMuted),
+                                  SizedBox(width: 6),
+                                  Text('Renk Rozeti & Sekme Rengi', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: AppColors.categoryColors.map((c) {
+                                  final hex = '#${c.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+                                  final isSelected = _selectedColorHex.toUpperCase() == hex.toUpperCase();
+                                  return InkWell(
+                                    onTap: () => setState(() => _selectedColorHex = hex),
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 150),
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: c,
+                                        shape: BoxShape.circle,
+                                        boxShadow: isSelected
+                                            ? [
+                                                BoxShadow(
+                                                  color: c.withValues(alpha: 0.6),
+                                                  blurRadius: 8,
+                                                  spreadRadius: 1,
+                                                ),
+                                              ]
+                                            : null,
+                                        border: Border.all(
+                                          color: isSelected ? Colors.white : Colors.transparent,
+                                          width: 2.5,
+                                        ),
                                       ),
+                                      child: isSelected
+                                          ? const Icon(Icons.check, size: 13, color: Colors.white)
+                                          : null,
                                     ),
-                                    child: isSelected
-                                        ? const Icon(Icons.check, size: 12, color: Colors.white)
-                                        : null,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ],
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -615,7 +642,13 @@ class _ServerFormDialogState extends State<ServerFormDialog> {
                   const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: _saveServer,
-                    child: Text(widget.server == null ? 'Sunucuyu Kaydet' : 'Değişiklikleri Kaydet'),
+                    child: Text(
+                      widget.isDuplicate
+                          ? 'Yeni Sunucu Olarak Kaydet'
+                          : widget.server == null
+                              ? 'Sunucuyu Kaydet'
+                              : 'Değişiklikleri Kaydet',
+                    ),
                   ),
                 ],
               ),

@@ -45,17 +45,25 @@ class AppColors {
   static const Color terminalHeader = Color(0xFF161B22);
   static const Color terminalBorder = Color(0xFF30363D);
 
-  // Preset Category Colors
+  // Preset Category & Server Colors
   static const List<Color> categoryColors = [
-    Color(0xFF10B981), // Emerald
+    Color(0xFF10B981), // Emerald Green
+    Color(0xFF14B8A6), // Teal
     Color(0xFF06B6D4), // Cyan
-    Color(0xFF3B82F6), // Blue
+    Color(0xFF0EA5E9), // Sky Blue
+    Color(0xFF3B82F6), // Royal Blue
     Color(0xFF6366F1), // Indigo
+    Color(0xFF8B5CF6), // Violet
     Color(0xFFA855F7), // Purple
+    Color(0xFFD946EF), // Fuchsia
     Color(0xFFEC4899), // Pink
     Color(0xFFF43F5E), // Rose
-    Color(0xFFF97316), // Orange
-    Color(0xFFF59E0B), // Amber
-    Color(0xFF84CC16), // Lime
+    Color(0xFFEF4444), // Crimson Red
+    Color(0xFFF97316), // Vivid Orange
+    Color(0xFFF59E0B), // Amber Gold
+    Color(0xFFEAB308), // Bright Yellow
+    Color(0xFF84CC16), // Lime Green
+    Color(0xFF22C55E), // Bright Green
+    Color(0xFF64748B), // Slate Silver
   ];
 }
