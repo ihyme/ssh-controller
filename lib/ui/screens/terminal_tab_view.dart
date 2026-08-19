@@ -199,17 +199,16 @@ class TerminalTabView extends StatelessWidget {
                         },
                       ),
 
-                    // Reconnect Button
+                    // Reconnect / Connect Button
                     if (activeSession != null && activeSession.status != TerminalSessionStatus.connected)
                       IconButton(
-                        icon: const Icon(Icons.refresh_rounded, size: 16, color: AppColors.primaryLight),
-                        tooltip: 'Yeniden Bağlan',
+                        icon: const Icon(Icons.play_circle_fill_rounded, size: 18, color: AppColors.primaryLight),
+                        tooltip: 'Bağlantıyı Başlat / Yeniden Bağlan',
                         visualDensity: VisualDensity.compact,
                         onPressed: () {
                           final creds = serverProvider.decryptCredentials(activeSession.server);
-                          terminalProvider.closeTab(activeIndex);
-                          terminalProvider.openServerSession(
-                            server: activeSession.server,
+                          terminalProvider.reconnectTab(
+                            index: activeIndex,
                             decryptedPassword: creds.password,
                             decryptedPrivateKey: creds.privateKey,
                             decryptedPassphrase: creds.passphrase,

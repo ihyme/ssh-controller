@@ -27,6 +27,27 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isTerminalMaximized = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _restorePreviousTabs();
+    });
+  }
+
+  void _restorePreviousTabs() async {
+    final serverProvider = context.read<ServerProvider>();
+    final terminalProvider = context.read<TerminalProvider>();
+    if (serverProvider.servers.isNotEmpty) {
+      await terminalProvider.restoreSavedTabs(serverProvider.servers);
+    } else {
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (mounted) {
+        await terminalProvider.restoreSavedTabs(serverProvider.servers);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final serverProvider = context.watch<ServerProvider>();
     final categoryProvider = context.watch<CategoryProvider>();

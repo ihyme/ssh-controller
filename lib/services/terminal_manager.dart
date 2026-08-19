@@ -103,6 +103,53 @@ class TerminalManager {
     return session;
   }
 
+  /// Creates a ready (pre-opened) tab for restoring previous sessions
+  TerminalSession createReadySession({
+    required ServerModel server,
+    Function()? onStateChanged,
+  }) {
+    const uuid = Uuid();
+    final sessionId = uuid.v4();
+
+    final terminal = Terminal(maxLines: 10000);
+    final title = '${server.name} (${server.username}@${server.host})';
+
+    final session = TerminalSession(
+      id: sessionId,
+      server: server,
+      title: title,
+      terminal: terminal,
+    );
+    session.status = TerminalSessionStatus.disconnected;
+
+    terminal.write('\x1b[36m⚡ [RoPi SSH] Önceki oturum hazırlandı: ${server.name} (${server.username}@${server.host}:${server.port})\x1b[0m\r\n');
+    terminal.write('\x1b[32m✔ Bağlantıyı başlatmak için üstteki "Yeniden Bağlan" butonuna tıklayabilirsiniz.\x1b[0m\r\n\r\n');
+
+    _sessions.add(session);
+    _activeSessionIndex = 0;
+    onStateChanged?.call();
+    return session;
+  }
+
+  /// Reconnects an existing session in-place
+  Future<void> reconnectSession({
+    required TerminalSession session,
+    required String decryptedPassword,
+    required String decryptedPrivateKey,
+    required String decryptedPassphrase,
+    Function()? onStateChanged,
+  }) async {
+    session.status = TerminalSessionStatus.connecting;
+    onStateChanged?.call();
+    await _connectSession(
+      session: session,
+      decryptedPassword: decryptedPassword,
+      decryptedPrivateKey: decryptedPrivateKey,
+      decryptedPassphrase: decryptedPassphrase,
+      onStateChanged: onStateChanged,
+    );
+  }
+
   Future<void> _connectSession({
     required TerminalSession session,
     required String decryptedPassword,
