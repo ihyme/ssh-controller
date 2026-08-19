@@ -1,0 +1,87 @@
+# ==============================================================================
+# Security & Sensitive Data (DO NOT COMMIT)
+# ==============================================================================
+# Local SQLite Database & Storage
+/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Encrypted Backup Files & Credentials
+*_backup_*.json
+*backup*.json
+*.key
+*.pem
+*.ppk
+*.pfx
+*.p12
+*.cer
+*.crt
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# ==============================================================================
+# Flutter & Dart Build Artifacts
+# ==============================================================================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+**/doc/api/
+
+# Symbolication & Obfuscation
+app.*.symbols
+app.*.map.json
+
+# Desktop Ephemeral Folders
+/windows/flutter/ephemeral/
+/linux/flutter/ephemeral/
+/macos/Flutter/ephemeral/
+
+# ==============================================================================
+# IDE & Editor Configurations
+# ==============================================================================
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.suo
+*.user
+*.userosv
+*.sln.docstates
+
+# ==============================================================================
+# Operating System Files
+# ==============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Logs & Temporary Files
+*.log
+*.tmp
+*.bak
+*.swp
+*.stackdump
+*~
