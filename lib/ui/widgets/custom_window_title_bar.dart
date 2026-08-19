@@ -22,11 +22,12 @@ class CustomWindowTitleBar extends StatefulWidget {
 
 class _CustomWindowTitleBarState extends State<CustomWindowTitleBar> with WindowListener {
   bool _isMaximized = false;
+  bool get _isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
   @override
   void initState() {
     super.initState();
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if (_isDesktop) {
       windowManager.addListener(this);
       _checkMaximized();
     }
@@ -34,16 +35,18 @@ class _CustomWindowTitleBarState extends State<CustomWindowTitleBar> with Window
 
   @override
   void dispose() {
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    if (_isDesktop) {
       windowManager.removeListener(this);
     }
     super.dispose();
   }
 
   Future<void> _checkMaximized() async {
-    final max = await windowManager.isMaximized();
-    if (mounted) {
-      setState(() => _isMaximized = max);
+    if (_isDesktop) {
+      final max = await windowManager.isMaximized();
+      if (mounted) {
+        setState(() => _isMaximized = max);
+      }
     }
   }
 
@@ -63,8 +66,90 @@ class _CustomWindowTitleBarState extends State<CustomWindowTitleBar> with Window
     final authProvider = context.watch<AuthProvider>();
     final activeSessionsCount = terminalProvider.sessions.length;
 
+    Widget titleRow = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.primary, AppColors.accentCyan],
+              ),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Icon(
+              Icons.terminal_rounded,
+              color: Colors.white,
+              size: 14,
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            'RoPi SSH',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+            ),
+            child: const Text(
+              'PRO',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          if (activeSessionsCount > 0) ...[
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.accentIndigo.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.accentIndigo.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: AppColors.statusOnline,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '$activeSessionsCount Aktif Oturum',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+
     return Container(
-      height: 42,
+      height: 44,
       decoration: const BoxDecoration(
         color: AppColors.darkSidebar,
         border: Border(
@@ -75,89 +160,7 @@ class _CustomWindowTitleBarState extends State<CustomWindowTitleBar> with Window
         children: [
           // App Icon & Title
           Expanded(
-            child: DragToMoveArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.accentCyan],
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Icon(
-                        Icons.terminal_rounded,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'RoPi SSH',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-                      ),
-                      child: const Text(
-                        'PRO',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    if (activeSessionsCount > 0) ...[
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.accentIndigo.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.accentIndigo.withValues(alpha: 0.4)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              '$activeSessionsCount Aktif Oturum',
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+            child: _isDesktop ? DragToMoveArea(child: titleRow) : titleRow,
           ),
 
           // Action Buttons
