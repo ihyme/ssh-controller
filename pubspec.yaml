@@ -38,3 +38,10 @@ dependency_overrides:
   # pointycastle'ı dartssh2'nin istediği 4.x sürümüne zorluyoruz
   # (encrypt paketi API düzeyinde pointycastle 4 ile genelde sorunsuz çalışır)
   pointycastle: ^4.0.0
+  # xterm 4.0.0, yeni Flutter multi-view mimarisinde TextInputConfiguration'a
+  # viewId göndermiyor; bu da Windows'ta "view ID is null" hatasıyla klavye
+  # girişinin (harflerin) terminale ulaşmamasına yol açıyor. Üst akış düzeltme
+  # yayınlayana kadar yerel yamalı kopyayı kullanıyoruz.
+  # (https://github.com/TerminalStudio/xterm.dart/issues/207)
+  xterm:
+    path: vendor/xterm

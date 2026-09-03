@@ -20,6 +20,21 @@ class TerminalProvider extends ChangeNotifier {
   String get themeName => _themeName;
   bool get isTerminalVisible => _isTerminalVisible;
 
+  /// Forces the active terminal to grab real OS keyboard/IME focus.
+  ///
+  /// Without this, a newly opened or switched-to tab only reacts to
+  /// hardware keys like Enter (handled via raw key events) because the
+  /// platform text-input connection that carries printable characters is
+  /// never opened until something calls requestKeyboard() while the
+  /// terminal's FocusNode already has focus.
+  void _focusActiveTerminal() {
+    final session = activeSession;
+    if (session == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      session.viewKey.currentState?.requestKeyboard();
+    });
+  }
+
   void showTerminal() {
     _isTerminalVisible = true;
     notifyListeners();
@@ -94,6 +109,7 @@ class TerminalProvider extends ChangeNotifier {
     );
     _saveOpenTabs();
     notifyListeners();
+    _focusActiveTerminal();
     return session;
   }
 
@@ -114,12 +130,14 @@ class TerminalProvider extends ChangeNotifier {
         onStateChanged: () => notifyListeners(),
       );
       notifyListeners();
+      _focusActiveTerminal();
     }
   }
 
   void setActiveTab(int index) {
     _manager.setActiveIndex(index);
     notifyListeners();
+    _focusActiveTerminal();
   }
 
   void closeTab(int index) {

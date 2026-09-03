@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:xterm/xterm.dart';
@@ -263,13 +264,16 @@ class TerminalTabView extends StatelessWidget {
                 index: activeIndex.clamp(0, sessions.isEmpty ? 0 : sessions.length - 1),
                 children: sessions.map((session) {
                   return TerminalView(
+                    key: session.viewKey,
                     session.terminal,
+                    controller: session.controller,
                     textStyle: TerminalStyle(
                       fontSize: terminalProvider.fontSize,
                       fontFamily: GoogleFonts.jetBrainsMono().fontFamily ?? 'monospace',
                     ),
                     theme: _getTerminalTheme(terminalProvider.themeName),
                     autofocus: true,
+                    onSecondaryTapDown: (details, offset) => _onTerminalRightClick(session),
                   );
                 }).toList(),
               ),
@@ -278,6 +282,24 @@ class TerminalTabView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _onTerminalRightClick(TerminalSession session) async {
+    final selection = session.controller.selection;
+    if (selection != null) {
+      final text = session.terminal.buffer.getText(selection);
+      session.controller.clearSelection();
+      if (text.isNotEmpty) {
+        await Clipboard.setData(ClipboardData(text: text));
+      }
+      return;
+    }
+
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+    if (text != null && text.isNotEmpty) {
+      session.terminal.paste(text);
+    }
   }
 
   TerminalTheme _getTerminalTheme(String name) {

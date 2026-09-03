@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 import 'package:xterm/xterm.dart';
 import '../data/models/server_model.dart';
@@ -19,7 +20,9 @@ class TerminalSession {
   final ServerModel server;
   final String title;
   final Terminal terminal;
-  
+  final GlobalKey<TerminalViewState> viewKey = GlobalKey<TerminalViewState>();
+  final TerminalController controller = TerminalController();
+
   SSHClient? client;
   SSHSession? sshSession;
   TerminalSessionStatus status = TerminalSessionStatus.connecting;
@@ -44,6 +47,7 @@ class TerminalSession {
     try {
       client?.close();
     } catch (_) {}
+    controller.dispose();
   }
 }
 
